@@ -1,0 +1,2 @@
+initramfs-tools/*         usr/share/initramfs-tools
+etc/*                     etc/luks-net

@@ -1,0 +1,24 @@
+#
+# Configuration options for the luks-net boot scripts.  You must run
+# update-initramfs(8) to effect changes to this file.  Likewise for
+# other files under the '/etc/luks-net' directory).
+
+# luks-net requires the user to create a public/private ssh key pair
+# and put the private key in /etc/luks-net/ssh.key with file
+# permissions 0600.
+
+# Remote server holding key
+#
+# LUKS_NET_REMOTE_SERVER=key-server
+
+# Remote user holding key
+#
+# LUKS_NET_REMOTE_USER=luks-net
+
+# Path to key on remote server
+#
+# LUKS_NET_REMOTE_KEY_PATH=data/<hostname>
+
+# Additional command line options to pass to scp(1)
+#
+# LUKS_NET_SCP_OPTIONS=""

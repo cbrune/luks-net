@@ -1,0 +1,82 @@
+#!/bin/sh
+
+PREREQS="dropbear"
+prereqs()
+{
+	echo $PREREQS
+}
+
+case $1 in
+# get pre-requisites
+prereqs)
+	prereqs
+	exit 0
+	;;
+esac
+
+. /scripts/functions
+
+SCP_OPTS=
+REMOTE_KEY=
+
+set_options() {
+    LUKS_NET_REMOTE_SERVER=key-server
+    LUKS_NET_REMOTE_USER=luks-net
+    LUKS_NET_REMOTE_KEY_PATH="data/$(hostname)"
+    LUKS_NET_SCP_OPTIONS=
+
+    if [ -r /etc/luks-net/config ] ; then
+        . /etc/luks-net/config
+    fi
+
+    SCP_OPTS="
+-q
+-i /etc/luks-net/ssh.key
+-o UserKnownHostsFile=/dev/null
+-o StrictHostKeyChecking=no
+$LUKS_NET_SCP_OPTIONS
+"
+
+    REMOTE_KEY="${LUKS_NET_REMOTE_USER}@${LUKS_NET_REMOTE_SERVER}:${LUKS_NET_REMOTE_KEY_PATH}"
+}
+
+run_luks_net() {
+    if [ -x /bin/cryptroot-unlock ] ; then
+        KEY_FILE=/run/luks.key
+        # The network could be down for a long time ....
+        RETRY=600
+        while [ $RETRY -gt 0 ] ; do
+            set_options
+            if scp $SCP_OPTS $REMOTE_KEY $KEY_FILE ; then
+                break
+            fi
+            sleep 0.5
+            RETRY=$(( $RETRY - 1 ))
+        done
+        if [ $RETRY -gt 0 ] ; then
+            log_success_msg "luks-net: loaded key from server"
+            key=$(cat $KEY_FILE)
+            rm -f $KEY_FILE
+            # cryptroot-unlock already has a 10 second timeout built in ...
+            RETRY=5
+            while [ $RETRY -gt 0 ] ; do
+                echo -n "$key" | /bin/cryptroot-unlock && break
+                sleep 0.5
+                RETRY=$(( $RETRY - 1 ))
+            done
+            if [ $RETRY -gt 0 ] ; then
+                log_success_msg "luks-net: volume unlocked"
+            else
+                log_failure_msg "luks-net: unable to unlock volume"
+            fi
+        else
+            log_warning_msg "luks-net: unable to load key from server"
+        fi
+    fi
+}
+
+# Need to run luks-net in the background so that the other init
+# scripts run, including the special local-top/cryptroot...
+run_luks_net &
+
+exit 0

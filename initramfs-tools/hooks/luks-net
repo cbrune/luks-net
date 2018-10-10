@@ -1,0 +1,34 @@
+#!/bin/sh
+
+PREREQ=""
+
+prereqs()
+{
+	echo "$PREREQ"
+}
+
+case $1 in
+prereqs)
+	prereqs
+	exit 0
+	;;
+esac
+
+. /usr/share/initramfs-tools/hook-functions
+
+luks_warn() {
+    echo "luks-net: WARNING:" "$@" >&2
+}
+
+if [ -e /etc/luks-net ] ; then
+    mkdir -p "${DESTDIR}/etc"
+    cp -a /etc/luks-net "${DESTDIR}/etc"
+    if [ -r "${DESTDIR}/etc/luks-net/ssh.key" ] ; then
+        chmod 0600 "${DESTDIR}/etc/luks-net/ssh.key"
+    else
+        luks_warn "Missing ssh.key - remote scp will not work"
+    fi
+fi
+
+copy_exec /usr/bin/scp
+copy_exec /usr/bin/ssh
