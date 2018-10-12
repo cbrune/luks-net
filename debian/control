@@ -10,8 +10,8 @@ Homepage: <insert the upstream URL, if relevant>
 
 Package: luks-net
 Architecture: all
-Depends: ${misc:Depends} openssh-client
-Recommends: cryptsetup dropbear-initramfs
+Depends: ${misc:Depends}, openssh-client
+Recommends: cryptsetup, dropbear-initramfs
 Description: unlock LUKS device during initramfs via network
  During the initramfs boot process, use ssh to fetch a LUKS volume key
  and unlock the volume.

@@ -1,2 +1,3 @@
 initramfs-tools/*         usr/share/initramfs-tools
 etc/*                     etc/luks-net
+README.md                 usr/share/doc/luks-net
